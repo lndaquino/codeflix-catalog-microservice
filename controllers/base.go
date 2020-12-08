@@ -18,7 +18,7 @@ type Server struct {
 }
 
 //Initialize inits db connection and system routes
-func (server *Server) Initialize(Dbdriver, DbUser, DbPassword, DbPort, DbHost, DbName string) {
+func (server *Server) Initialize(Dbdriver, DbUser, DbPassword, DbPort, DbHost, DbName, DbDebug string) {
 	var err error
 	DBURL := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s", DbHost, DbPort, DbUser, DbName, DbPassword)
 	server.DB, err = gorm.Open(Dbdriver, DBURL)
@@ -29,9 +29,14 @@ func (server *Server) Initialize(Dbdriver, DbUser, DbPassword, DbPort, DbHost, D
 		fmt.Printf("Connected to %s database\n", Dbdriver)
 	}
 
+	if DbDebug == "on" {
+		server.DB.LogMode(true)
+	}
+
 	//database migration
 	server.DB.Debug().AutoMigrate(
 		&models.Category{},
+		&models.Genre{},
 	)
 
 	server.Router = gin.Default()

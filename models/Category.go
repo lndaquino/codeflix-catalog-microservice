@@ -3,7 +3,6 @@ package models
 import (
 	"errors"
 	"html"
-	"log"
 	"strings"
 	"time"
 
@@ -14,12 +13,13 @@ import (
 
 // Category models a category
 type Category struct {
-	ID          string    `json:"id" valid:"uuid" gorm:"type:uuid;primary_key"`
-	Name        string    `json:"name" valid:"type(string),required~Category name is required,stringlength(3|255)~Category name must be between 3 and 255 characters" gorm:"varchar(255);unique"`
-	Description string    `json:"description" valid:"type(string),optional" gorm:"varchar(255)"`
-	IsActive    *bool     `json:"is_active" valid:"-" gorm:"bool;default:true"`
-	CreatedAt   time.Time `json:"created_at" valid:"-" gorm:"autoCreateTime"`
-	UpdatedAt   time.Time `json:"updated_at" valid:"-" gorm:"autoUpdateTime"`
+	ID          string     `json:"id" valid:"uuid" gorm:"type:uuid;primary_key"`
+	Name        string     `json:"name" valid:"type(string),required~Category name is required,stringlength(3|255)~Category name must be between 3 and 255 characters" gorm:"varchar(255);unique"`
+	Description string     `json:"description" valid:"type(string),optional" gorm:"varchar(255)"`
+	IsActive    *bool      `json:"is_active" valid:"-" gorm:"bool;default:true"`
+	CreatedAt   *time.Time `json:"created_at,omitempty" valid:"-" gorm:"autoCreateTime"`
+	UpdatedAt   *time.Time `json:"updated_at,omitempty" valid:"-" gorm:"autoUpdateTime"`
+	DeletedAt   *time.Time `json:"deleted_at,omitempty" valid:"-" gorm:"autoDeleteTime"`
 }
 
 func init() {
@@ -43,31 +43,31 @@ func (c *Category) Prepare() {
 	c.Description = html.EscapeString(strings.TrimSpace(c.Description))
 }
 
-// CreateCategory creates a new category
-func (c *Category) CreateCategory(db *gorm.DB) (*Category, error) {
-	if err := db.Debug().Create(&c).Error; err != nil {
+// Create creates a new category
+func (c *Category) Create(db *gorm.DB) (*Category, error) {
+	if err := db.Create(&c).Error; err != nil {
 		return &Category{}, err
 	}
 
 	return c, nil
 }
 
-// FindAllCategories returns all categories in db
-func (c *Category) FindAllCategories(db *gorm.DB) (*[]Category, error) {
+// FindAll returns all categories in db
+func (c *Category) FindAll(db *gorm.DB) (*[]Category, error) {
 	categories := []Category{}
 
-	if err := db.Debug().Model(&Category{}).Find(&categories).Error; err != nil {
+	if err := db.Model(&Category{}).Find(&categories).Error; err != nil {
 		return &[]Category{}, err
 	}
 
 	return &categories, nil
 }
 
-// FindCategoryByID searchs a category by id
-func (c *Category) FindCategoryByID(db *gorm.DB) error {
+// FindByID searchs a category by id
+func (c *Category) FindByID(db *gorm.DB) error {
 	var err error
 
-	err = db.Debug().Take(&c).Error
+	err = db.Take(&c).Error
 	if err != nil {
 		return err
 	}
@@ -79,12 +79,9 @@ func (c *Category) FindCategoryByID(db *gorm.DB) error {
 	return err
 }
 
-// UpdateCategory updates a category by id
-func (c *Category) UpdateCategory(db *gorm.DB) (*Category, error) {
-	var err error
-
-	rows := db.Debug().Model(&c).Updates(&c).RowsAffected
-	log.Println(err)
+// Update updates a category by id
+func (c *Category) Update(db *gorm.DB) (*Category, error) {
+	rows := db.Model(&c).Updates(&c).RowsAffected
 	if rows == 0 {
 		return &Category{}, errors.New("Category not found")
 	}
@@ -92,11 +89,15 @@ func (c *Category) UpdateCategory(db *gorm.DB) (*Category, error) {
 	return c, nil
 }
 
-// DeleteCategory deletes a category by id
-func (c *Category) DeleteCategory(db *gorm.DB) error {
-	db = db.Debug().Delete(&c)
+// Delete deletes a category by id
+func (c *Category) Delete(db *gorm.DB) error {
+	db = db.Delete(&c)
 	if db.Error != nil {
 		return db.Error
+	}
+
+	if db.RowsAffected == 0 {
+		return errors.New("Category not found")
 	}
 	return nil
 }

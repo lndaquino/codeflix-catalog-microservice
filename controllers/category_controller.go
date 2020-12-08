@@ -38,7 +38,7 @@ func (server *Server) CreateCategory(c *gin.Context) {
 		return
 	}
 
-	categoryCreated, err := category.CreateCategory(server.DB)
+	categoryCreated, err := category.Create(server.DB)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Error processing request",
@@ -53,7 +53,7 @@ func (server *Server) CreateCategory(c *gin.Context) {
 func (server *Server) GetCategories(c *gin.Context) {
 	category := models.Category{}
 
-	categories, err := category.FindAllCategories(server.DB)
+	categories, err := category.FindAll(server.DB)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err,
@@ -75,7 +75,7 @@ func (server *Server) GetCategory(c *gin.Context) {
 	}
 	category := models.Category{ID: categoryID}
 
-	err := category.FindCategoryByID(server.DB)
+	err := category.FindByID(server.DB)
 	log.Println(err)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -116,7 +116,7 @@ func (server *Server) UpdateCategory(c *gin.Context) {
 		return
 	}
 
-	updatedCategory, err := newCategory.UpdateCategory(server.DB)
+	updatedCategory, err := newCategory.Update(server.DB)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err,
@@ -138,7 +138,14 @@ func (server *Server) DeleteCategory(c *gin.Context) {
 	}
 	category := models.Category{ID: categoryID}
 
-	if err := category.DeleteCategory(server.DB); err != nil {
+	if err := category.Delete(server.DB); err != nil {
+		if err.Error() == "Category not found" {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": err,
+			})
+			return
+		}
+
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err,
 		})
