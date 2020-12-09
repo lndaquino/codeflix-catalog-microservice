@@ -8,14 +8,13 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/jinzhu/gorm"
-	uuid "github.com/satori/go.uuid"
 )
 
 // Category models a category
 type Category struct {
 	ID          string     `json:"id" valid:"uuid" gorm:"type:uuid;primary_key"`
 	Name        string     `json:"name" valid:"type(string),required~Category name is required,stringlength(3|255)~Category name must be between 3 and 255 characters" gorm:"varchar(255);unique"`
-	Description string     `json:"description" valid:"type(string),optional" gorm:"varchar(255)"`
+	Description string     `json:"description" valid:"type(string),stringlength(3|255)~Category name must be between 3 and 255 characters,optional" gorm:"varchar(255)" gorm:"varchar(255)"`
 	IsActive    *bool      `json:"is_active" valid:"-" gorm:"bool;default:true"`
 	CreatedAt   *time.Time `json:"created_at,omitempty" valid:"-" gorm:"autoCreateTime"`
 	UpdatedAt   *time.Time `json:"updated_at,omitempty" valid:"-" gorm:"autoUpdateTime"`
@@ -36,9 +35,6 @@ func (c *Category) Validate() error {
 
 // Prepare prepares values
 func (c *Category) Prepare() {
-	if c.ID == "" {
-		c.ID = uuid.NewV4().String()
-	}
 	c.Name = html.EscapeString(strings.TrimSpace(c.Name))
 	c.Description = html.EscapeString(strings.TrimSpace(c.Description))
 }
