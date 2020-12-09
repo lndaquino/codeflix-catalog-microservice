@@ -8,7 +8,6 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/jinzhu/gorm"
-	uuid "github.com/satori/go.uuid"
 )
 
 // Genre models a genre
@@ -35,9 +34,6 @@ func (g *Genre) Validate() error {
 
 // Prepare prepares values
 func (g *Genre) Prepare() {
-	if g.ID == "" {
-		g.ID = uuid.NewV4().String()
-	}
 	g.Name = html.EscapeString(strings.TrimSpace(g.Name))
 }
 

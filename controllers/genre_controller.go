@@ -7,7 +7,7 @@ import (
 	"video-catalog/models"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
+	uuid "github.com/satori/go.uuid"
 )
 
 // CreateGenre controller handles genre creation request
@@ -27,9 +27,9 @@ func (server *Server) CreateGenre(c *gin.Context) {
 		})
 		return
 	}
+	genre.ID = uuid.NewV4().String()
 
 	genre.Prepare()
-
 	if err := genre.Validate(); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": err,
@@ -66,7 +66,7 @@ func (server *Server) GetGenres(c *gin.Context) {
 // GetGenre handles genre search request
 func (server *Server) GetGenre(c *gin.Context) {
 	genreID := c.Param("id")
-	if _, err := uuid.Parse(genreID); err != nil {
+	if _, err := uuid.FromString(genreID); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": err,
 		})
@@ -128,7 +128,7 @@ func (server *Server) UpdateGenre(c *gin.Context) {
 // DeleteGenre handles genre delete requests
 func (server *Server) DeleteGenre(c *gin.Context) {
 	genreID := c.Param("id")
-	if _, err := uuid.Parse(genreID); err != nil {
+	if _, err := uuid.FromString(genreID); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": err,
 		})

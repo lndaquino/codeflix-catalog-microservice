@@ -8,7 +8,7 @@ import (
 	"video-catalog/models"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
+	uuid "github.com/satori/go.uuid"
 )
 
 // CreateCategory controller handles category creation request
@@ -28,9 +28,9 @@ func (server *Server) CreateCategory(c *gin.Context) {
 		})
 		return
 	}
+	category.ID = uuid.NewV4().String()
 
 	category.Prepare()
-
 	if err := category.Validate(); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": err,
@@ -67,7 +67,7 @@ func (server *Server) GetCategories(c *gin.Context) {
 // GetCategory handles category search request
 func (server *Server) GetCategory(c *gin.Context) {
 	categoryID := c.Param("id")
-	if _, err := uuid.Parse(categoryID); err != nil {
+	if _, err := uuid.FromString(categoryID); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": err,
 		})
@@ -130,7 +130,7 @@ func (server *Server) UpdateCategory(c *gin.Context) {
 // DeleteCategory handles category delete requests
 func (server *Server) DeleteCategory(c *gin.Context) {
 	categoryID := c.Param("id")
-	if _, err := uuid.Parse(categoryID); err != nil {
+	if _, err := uuid.FromString(categoryID); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": err,
 		})
