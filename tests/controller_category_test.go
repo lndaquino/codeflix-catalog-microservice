@@ -20,14 +20,21 @@ func TestCreateCategory(t *testing.T) {
 		log.Fatal(err)
 	}
 
+	x := true
 	samples := []struct {
-		inputJSON  string
-		statusCode int
+		inputJSON   string
+		statusCode  int
+		name        string
+		description string
+		isActive    *bool
 	}{
 		{
 			// basic creation
-			inputJSON:  `{"name":"category name", "description":"category description", "is_active": true}`,
-			statusCode: http.StatusCreated,
+			inputJSON:   `{"name":"category name", "description":"category description", "is_active": true}`,
+			statusCode:  http.StatusCreated,
+			name:        "category name",
+			description: "category description",
+			isActive:    &x,
 		},
 		{
 			// duplicated category name forbidden
@@ -36,8 +43,11 @@ func TestCreateCategory(t *testing.T) {
 		},
 		{
 			// only required fields
-			inputJSON:  `{"name":"new category"}`,
-			statusCode: http.StatusCreated,
+			inputJSON:   `{"name":"new category"}`,
+			statusCode:  http.StatusCreated,
+			name:        "new category",
+			description: "",
+			isActive:    &x,
 		},
 		{
 			// wrong name data type
@@ -79,7 +89,10 @@ func TestCreateCategory(t *testing.T) {
 			if err != nil {
 				t.Errorf("Cannot convert to json: %v", err)
 			}
-			// log.Println(responseCategory)
+
+			assert.Equal(t, v.name, responseCategory.Name)
+			assert.Equal(t, v.description, responseCategory.Description)
+			assert.Equal(t, v.isActive, responseCategory.IsActive)
 		}
 	}
 }
@@ -127,13 +140,19 @@ func TestGetCategoryByID(t *testing.T) {
 	}
 
 	categorySample := []struct {
-		id         string
-		statusCode int
+		id          string
+		statusCode  int
+		name        string
+		description string
+		isActive    *bool
 	}{
 		{
 			// valid category
-			id:         category.ID,
-			statusCode: http.StatusOK,
+			id:          category.ID,
+			statusCode:  http.StatusOK,
+			name:        category.Name,
+			description: category.Description,
+			isActive:    category.IsActive,
 		},
 		{
 			// invalid id parameter
@@ -157,6 +176,18 @@ func TestGetCategoryByID(t *testing.T) {
 
 		assert.Equal(t, v.statusCode, rr.Code)
 
+		if v.statusCode == http.StatusOK {
+			responseCategory := models.Category{}
+			err = json.Unmarshal([]byte(rr.Body.String()), &responseCategory)
+			if err != nil {
+				t.Errorf("Cannot convert to json: %v", err)
+			}
+
+			assert.Equal(t, v.name, responseCategory.Name)
+			assert.Equal(t, v.description, responseCategory.Description)
+			assert.Equal(t, v.isActive, responseCategory.IsActive)
+		}
+
 	}
 }
 
@@ -171,22 +202,32 @@ func TestUpdateCategory(t *testing.T) {
 		log.Fatal(err)
 	}
 
+	isFalse := false
 	samples := []struct {
-		id         string
-		updateJSON string
-		statusCode int
+		id          string
+		updateJSON  string
+		statusCode  int
+		name        string
+		description string
+		isActive    *bool
 	}{
 		{
 			// valid category full update
-			id:         categories[0].ID,
-			statusCode: http.StatusOK,
-			updateJSON: `{"name":"updated name", "description":"updated description", "is_active": false}`,
+			id:          categories[0].ID,
+			statusCode:  http.StatusOK,
+			updateJSON:  `{"name":"updated name", "description":"updated description", "is_active": false}`,
+			name:        "updated name",
+			description: "updated description",
+			isActive:    &isFalse,
 		},
 		{
 			// valid category partial update
-			id:         categories[0].ID,
-			statusCode: http.StatusOK,
-			updateJSON: `{"name":"updated name again"}`,
+			id:          categories[0].ID,
+			statusCode:  http.StatusOK,
+			updateJSON:  `{"name":"updated name again"}`,
+			name:        "updated name again",
+			description: "updated description",
+			isActive:    &isFalse,
 		},
 		{
 			// invalid id
@@ -197,7 +238,7 @@ func TestUpdateCategory(t *testing.T) {
 		{
 			// category not found
 			id:         uuid.NewV4().String(),
-			statusCode: http.StatusNotFound,
+			statusCode: http.StatusInternalServerError,
 			updateJSON: `{"name":"updated name", "description":"updated description", "is_active": false}`,
 		},
 		{
@@ -250,10 +291,22 @@ func TestUpdateCategory(t *testing.T) {
 		r.ServeHTTP(rr, req)
 
 		assert.Equal(t, v.statusCode, rr.Code)
+
+		if v.statusCode == http.StatusOK {
+			responseCategory := models.Category{}
+			err = json.Unmarshal([]byte(rr.Body.String()), &responseCategory)
+			if err != nil {
+				t.Errorf("Cannot convert to json: %v", err)
+			}
+
+			assert.Equal(t, v.name, responseCategory.Name)
+			assert.Equal(t, v.description, responseCategory.Description)
+			assert.Equal(t, v.isActive, responseCategory.IsActive)
+		}
 	}
 }
 
-func TestDeleteUser(t *testing.T) {
+func TestDeleteCategory(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	err := refreshCategoryTable()
@@ -301,4 +354,60 @@ func TestDeleteUser(t *testing.T) {
 
 		assert.Equal(t, v.statusCode, rr.Code)
 	}
+}
+
+func refreshCategoryTable() error {
+	err := server.DB.DropTableIfExists(&models.Category{}).Error
+	if err != nil {
+		return err
+	}
+	err = server.DB.AutoMigrate(&models.Category{}).Error
+	if err != nil {
+		return err
+	}
+	log.Printf("Sucessfully refreshed table")
+	return nil
+}
+
+func seedCategories() ([]models.Category, error) {
+	var err error
+	x := true
+	categories := []models.Category{
+		{
+			ID:          uuid.NewV4().String(),
+			Name:        "category 1",
+			Description: "description 1",
+			IsActive:    &x,
+		},
+		{
+			ID:          uuid.NewV4().String(),
+			Name:        "category 2",
+			Description: "description 2",
+			IsActive:    &x,
+		},
+	}
+
+	for i := range categories {
+		err = server.DB.Model(&models.Category{}).Create(&categories[i]).Error
+		if err != nil {
+			return []models.Category{}, err
+		}
+	}
+	return categories, nil
+}
+
+func seedOneCategory() (models.Category, error) {
+	x := true
+	category := models.Category{
+		ID:          uuid.NewV4().String(),
+		Name:        "category name",
+		Description: "describing category",
+		IsActive:    &x,
+	}
+
+	err := server.DB.Model(&models.Category{}).Create(&category).Error
+	if err != nil {
+		return models.Category{}, err
+	}
+	return category, nil
 }

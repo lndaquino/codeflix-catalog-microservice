@@ -116,6 +116,12 @@ func (server *Server) UpdateGenre(c *gin.Context) {
 
 	updatedGenre, err := newGenre.Update(server.DB)
 	if err != nil {
+		if err.Error() == "Internal server error" {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err,
+			})
+			return
+		}
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err,
 		})

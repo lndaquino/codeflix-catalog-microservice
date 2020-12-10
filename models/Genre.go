@@ -75,8 +75,11 @@ func (g *Genre) FindByID(db *gorm.DB) error {
 
 // Update updates a genre by id
 func (g *Genre) Update(db *gorm.DB) (*Genre, error) {
-	rows := db.Model(&g).Updates(&g).RowsAffected
-	if rows == 0 {
+	req := db.Model(&g).Updates(&g).Find(&g)
+	if req.Error != nil {
+		return &Genre{}, errors.New("Internal server error")
+	}
+	if req.RowsAffected == 0 {
 		return &Genre{}, errors.New("Genre not found")
 	}
 

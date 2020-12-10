@@ -77,7 +77,7 @@ func (c *Category) FindByID(db *gorm.DB) error {
 
 // Update updates a category by id
 func (c *Category) Update(db *gorm.DB) (*Category, error) {
-	req := db.Model(&c).Updates(&c)
+	req := db.Model(&c).Updates(&c).Find(&c)
 	if req.Error != nil {
 		return &Category{}, errors.New("Internal server error")
 	}
