@@ -166,7 +166,7 @@ func TestUpdateCategory(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	category, err := seedOneCategory()
+	categories, err := seedCategories()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -177,13 +177,78 @@ func TestUpdateCategory(t *testing.T) {
 		statusCode int
 	}{
 		{
-			id:         category.ID,
+			// valid category full update
+			id:         categories[0].ID,
 			statusCode: http.StatusOK,
+			updateJSON: `{"name":"updated name", "description":"updated description", "is_active": false}`,
+		},
+		{
+			// valid category partial update
+			id:         categories[0].ID,
+			statusCode: http.StatusOK,
+			updateJSON: `{"name":"updated name again"}`,
+		},
+		{
+			// invalid id
+			id:         "abc",
+			statusCode: http.StatusUnprocessableEntity,
+			updateJSON: `{"name":"updated name", "description":"updated description", "is_active": false}`,
+		},
+		{
+			// category not found
+			id:         uuid.NewV4().String(),
+			statusCode: http.StatusNotFound,
+			updateJSON: `{"name":"updated name", "description":"updated description", "is_active": false}`,
+		},
+		{
+			// missing required field
+			id:         categories[0].ID,
+			statusCode: http.StatusUnprocessableEntity,
+			updateJSON: `{"description":"updated description", "is_active": false}`,
+		},
+		{
+			// invalid name data type
+			id:         categories[0].ID,
+			statusCode: http.StatusUnprocessableEntity,
+			updateJSON: `{"name":1, "description":"updated description", "is_active": false}`,
+		},
+		{
+			// invalid description data type
+			id:         categories[0].ID,
+			statusCode: http.StatusUnprocessableEntity,
+			updateJSON: `{"name":"updated name", "description":1, "is_active": false}`,
+		},
+		{
+			// invalid is_active data type
+			id:         categories[0].ID,
+			statusCode: http.StatusUnprocessableEntity,
+			updateJSON: `{"name":"updated name", "description":"updated description", "is_active": "false"}`,
+		},
+		{
+			// no data
+			id:         categories[0].ID,
+			statusCode: http.StatusUnprocessableEntity,
 			updateJSON: `{}`,
+		},
+		{
+			// updating to an existing name
+			id:         categories[0].ID,
+			statusCode: http.StatusInternalServerError,
+			updateJSON: `{"name":"` + categories[1].Name + `", "description":"updated description", "is_active": false}`,
 		},
 	}
 
-	for _, v := range categorySample {
+	for _, v := range samples {
+		r := gin.Default()
+		r.PUT("/category/:id", server.UpdateCategory)
 
+		req, err := http.NewRequest(http.MethodPut, "/category/"+v.id, bytes.NewBufferString(v.updateJSON))
+		if err != nil {
+			t.Errorf("Error: %v\n", err)
+		}
+		rr := httptest.NewRecorder()
+		r.ServeHTTP(rr, req)
+
+		assert.Equal(t, v.statusCode, rr.Code)
 	}
 }

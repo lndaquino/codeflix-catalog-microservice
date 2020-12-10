@@ -118,6 +118,12 @@ func (server *Server) UpdateCategory(c *gin.Context) {
 
 	updatedCategory, err := newCategory.Update(server.DB)
 	if err != nil {
+		if err.Error() == "Internal server error" {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err,
+			})
+			return
+		}
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err,
 		})
