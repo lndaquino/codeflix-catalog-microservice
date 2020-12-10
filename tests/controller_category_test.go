@@ -252,3 +252,53 @@ func TestUpdateCategory(t *testing.T) {
 		assert.Equal(t, v.statusCode, rr.Code)
 	}
 }
+
+func TestDeleteUser(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	err := refreshCategoryTable()
+	if err != nil {
+		log.Fatal(err)
+	}
+	category, err := seedOneCategory()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	samples := []struct {
+		id         string
+		statusCode int
+	}{
+		{ // valid category
+			id:         category.ID,
+			statusCode: http.StatusNoContent,
+		},
+		{ // soft deleted category
+			id:         category.ID,
+			statusCode: http.StatusNotFound,
+		},
+		{ // invalid category
+			id:         uuid.NewV4().String(),
+			statusCode: http.StatusNotFound,
+		},
+		{ // invalid id parameter
+			id:         "abc",
+			statusCode: http.StatusUnprocessableEntity,
+		},
+		{ // no id parameter
+			id:         "",
+			statusCode: http.StatusNotFound,
+		},
+	}
+
+	for _, v := range samples {
+		r := gin.Default()
+		r.DELETE("/category/:id", server.DeleteCategory)
+		req, _ := http.NewRequest(http.MethodDelete, "/category/"+v.id, nil)
+
+		rr := httptest.NewRecorder()
+		r.ServeHTTP(rr, req)
+
+		assert.Equal(t, v.statusCode, rr.Code)
+	}
+}
