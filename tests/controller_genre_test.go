@@ -343,7 +343,7 @@ func refreshGenreTable() error {
 	if err != nil {
 		return err
 	}
-	log.Printf("Sucessfully refreshed table")
+	log.Printf("Sucessfully refreshed Genre table")
 	return nil
 }
 

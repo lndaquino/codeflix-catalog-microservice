@@ -16,5 +16,12 @@ func (s *Server) initializeRoutes() {
 		v1.GET("/genre/:id", s.GetGenre)
 		v1.PUT("/genre/:id", s.UpdateGenre)
 		v1.DELETE("/genre/:id", s.DeleteGenre)
+
+		//CastMember routes
+		v1.POST("/cast_member", s.CreateCastMember)
+		v1.GET("/cast_members", s.GetCastMembers)
+		v1.GET("/cast_member/:id", s.GetCastMember)
+		v1.PUT("/cast_member/:id", s.UpdateCastMember)
+		v1.DELETE("/cast_member/:id", s.DeleteCastMember)
 	}
 }

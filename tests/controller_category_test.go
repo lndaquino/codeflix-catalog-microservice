@@ -365,7 +365,7 @@ func refreshCategoryTable() error {
 	if err != nil {
 		return err
 	}
-	log.Printf("Sucessfully refreshed table")
+	log.Printf("Sucessfully refreshed Category table")
 	return nil
 }
 
