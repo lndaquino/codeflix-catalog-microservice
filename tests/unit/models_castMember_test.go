@@ -10,7 +10,7 @@ import (
 
 func TestValidateIfCastMemberIsEmpty(t *testing.T) {
 	castMember := models.CastMember{}
-	err := castMember.Validate()
+	err := castMember.Validate("create")
 	require.Error(t, err)
 }
 
@@ -21,7 +21,7 @@ func TestValidateCastMemberFullFilled(t *testing.T) {
 		Type: models.TypeActor,
 	}
 	castMember.Prepare()
-	err := castMember.Validate()
+	err := castMember.Validate("create")
 	require.Nil(t, err)
 }
 
@@ -32,7 +32,7 @@ func TestValidateCastMemberIDisNotUUID(t *testing.T) {
 		Type: models.TypeActor,
 	}
 	CastMember.Prepare()
-	err := CastMember.Validate()
+	err := CastMember.Validate("create")
 	require.Error(t, err)
 }
 
@@ -42,7 +42,7 @@ func TestCastMemberNameIsEmpty(t *testing.T) {
 		Type: models.TypeActor,
 	}
 	castMember.Prepare()
-	err := castMember.Validate()
+	err := castMember.Validate("create")
 	require.Error(t, err)
 }
 
@@ -53,7 +53,7 @@ func TestCastMemberNameIsLessThan3Characters(t *testing.T) {
 		Type: models.TypeActor,
 	}
 	castMember.Prepare()
-	err := castMember.Validate()
+	err := castMember.Validate("create")
 	require.Error(t, err)
 }
 
@@ -64,7 +64,7 @@ func TestCastMemberNameIsMoreThan255Characters(t *testing.T) {
 		Type: models.TypeActor,
 	}
 	castMember.Prepare()
-	err := castMember.Validate()
+	err := castMember.Validate("create")
 	require.Error(t, err)
 }
 
@@ -74,7 +74,7 @@ func TestCastMemberTypeIsEmpty(t *testing.T) {
 		Name: "name",
 	}
 	castMember.Prepare()
-	err := castMember.Validate()
+	err := castMember.Validate("create")
 	require.Error(t, err)
 }
 
@@ -85,6 +85,6 @@ func TestCastMemberTypeWrongValue(t *testing.T) {
 		Type: 0,
 	}
 	castMember.Prepare()
-	err := castMember.Validate()
+	err := castMember.Validate("create")
 	require.Error(t, err)
 }

@@ -3,11 +3,11 @@ package models
 import (
 	"errors"
 	"html"
-	"log"
 	"strings"
 	"time"
 
 	"github.com/asaskevich/govalidator"
+	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
 )
 
@@ -21,7 +21,7 @@ const TypeActor int = 2
 type CastMember struct {
 	ID        string     `json:"id" valid:"uuid" gorm:"type:uuid;primary_key"`
 	Name      string     `json:"name" valid:"type(string),required~CastMember name is required,stringlength(3|255)~Category name must be between 3 and 255 characters" gorm:"varchar(255);unique"`
-	Type      int        `json:"type" valid:"type(int),required~CastMember type is required"`
+	Type      int        `json:"type" valid:"type(int),required~CastMember type is required,range(1|2)~Value must be 1 or 2",`
 	CreatedAt *time.Time `json:"created_at,omitempty" valid:"-" gorm:"autoCreateTime"`
 	UpdatedAt *time.Time `json:"updated_at,omitempty" valid:"-" gorm:"autoUpdateTime"`
 	DeletedAt *time.Time `json:"deleted_at,omitempty" valid:"-" gorm:"autoDeleteTime"`
@@ -32,17 +32,29 @@ func init() {
 }
 
 // Validate validates basic struct
-func (c *CastMember) Validate() error {
-	log.Println("Validating CastMember...")
-	log.Println(c)
-	if _, err := govalidator.ValidateStruct(c); err != nil {
-		return err
-	}
+func (c *CastMember) Validate(action string) error {
+	switch strings.ToLower(action) {
 
-	log.Println("CastMember validated sucessfully!")
-	// if c.Type != TypeDirector && c.Type != TypeDirector {
-	// 	return errors.New("Invalid CastMember Type")
-	// }
+	case "update":
+		if _, err := uuid.Parse(c.ID); err != nil {
+			return errors.New("Invalid id")
+		}
+		if c.Name == "" && c.Type == 0 {
+			return errors.New("Invalid update call. You must update at least name or type")
+		}
+		if c.Type != 0 && c.Type != TypeActor && c.Type != TypeDirector {
+			return errors.New("Invalid update call. Type must be 1 or 2")
+		}
+
+	case "create":
+		if _, err := govalidator.ValidateStruct(c); err != nil {
+			return err
+		}
+	default:
+		if _, err := govalidator.ValidateStruct(c); err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
@@ -54,7 +66,6 @@ func (c *CastMember) Prepare() {
 
 // Create creates a new cast member
 func (c *CastMember) Create(db *gorm.DB) (*CastMember, error) {
-	log.Println("Chegou aqui")
 	if err := db.Create(&c).Error; err != nil {
 		return &CastMember{}, err
 	}

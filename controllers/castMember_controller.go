@@ -30,7 +30,7 @@ func (server *Server) CreateCastMember(c *gin.Context) {
 	castMember.ID = uuid.NewV4().String()
 
 	castMember.Prepare()
-	if err := castMember.Validate(); err != nil {
+	if err := castMember.Validate("create"); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": err,
 		})
@@ -107,7 +107,7 @@ func (server *Server) UpdateCastMember(c *gin.Context) {
 
 	newCastMember.ID = castMemberID
 	newCastMember.Prepare()
-	if err := newCastMember.Validate(); err != nil {
+	if err := newCastMember.Validate("update"); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": err,
 		})

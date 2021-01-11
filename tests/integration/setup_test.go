@@ -16,11 +16,11 @@ var server = controllers.Server{}
 var categoryInstance = models.Category{}
 
 func TestMain(m *testing.M) {
-	if _, err := os.Stat("./../.env"); os.IsNotExist(err) {
+	if _, err := os.Stat("./../../.env"); os.IsNotExist(err) {
 		log.Fatalf(".env not found: %v\n", err)
 	} else {
 		var err error
-		err = godotenv.Load(os.ExpandEnv("./../.env"))
+		err = godotenv.Load(os.ExpandEnv("./../../.env"))
 		if err != nil {
 			log.Fatalf("Error getting env %v\n", err)
 		}
