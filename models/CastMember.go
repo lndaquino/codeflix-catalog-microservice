@@ -21,7 +21,7 @@ const TypeActor int = 2
 type CastMember struct {
 	ID        string     `json:"id" valid:"uuid" gorm:"type:uuid;primary_key"`
 	Name      string     `json:"name" valid:"type(string),required~CastMember name is required,stringlength(3|255)~Category name must be between 3 and 255 characters" gorm:"varchar(255);unique"`
-	Type      int        `json:"type" valid:"type(int),required~CastMember type is required,range(1|2)~Value must be 1 or 2",`
+	Type      int        `json:"type" valid:"type(int),required~CastMember type is required,range(1|2)~Value must be 1 or 2"`
 	CreatedAt *time.Time `json:"created_at,omitempty" valid:"-" gorm:"autoCreateTime"`
 	UpdatedAt *time.Time `json:"updated_at,omitempty" valid:"-" gorm:"autoUpdateTime"`
 	DeletedAt *time.Time `json:"deleted_at,omitempty" valid:"-" gorm:"autoDeleteTime"`
